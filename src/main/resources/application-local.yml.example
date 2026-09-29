@@ -1,0 +1,60 @@
+# ===========================================================================
+# MODELO de configuracao local.
+#
+# COMO USAR:
+#   1. Copie este arquivo, na mesma pasta, com o nome:
+#          application-local.yml
+#      (ou seja: remova o ".example" do final)
+#   2. Preencha os valores com os dados do SEU projeto no Supabase.
+#
+# O arquivo application-local.yml esta no .gitignore e NUNCA sera enviado
+# para o GitHub. Suas senhas ficam so na sua maquina.
+# ===========================================================================
+
+spring:
+  datasource:
+    # ATENCAO - use a connection string do "Session Pooler" do Supabase,
+    # e NAO a "Direct connection".
+    #
+    # Motivo: no plano gratuito, a conexao direta (db.xxxxx.supabase.co)
+    # so funciona por IPv6, e a maioria das operadoras brasileiras ainda
+    # entrega IPv4 - a conexao simplesmente falha com "connection refused".
+    # O Session Pooler funciona em IPv4 e aceita tudo que precisamos
+    # (Flyway, Hibernate, prepared statements).
+    #
+    # Onde encontrar no Supabase:
+    #   Project  ->  Connect  ->  aba "Session pooler"
+    #
+    # A string de la vem no formato:
+    #   postgresql://postgres.abcdefgh:SENHA@aws-0-sa-east-1.pooler.supabase.com:5432/postgres
+    #
+    # Converta para o formato JDBC assim:
+    #   - troque "postgresql://" por "jdbc:postgresql://"
+    #   - tire o "usuario:senha@" da URL e ponha nos campos separados abaixo
+    #
+    url: jdbc:postgresql://aws-0-sa-east-1.pooler.supabase.com:5432/postgres
+
+    # Usuario DEDICADO ao SmartKey, sem acesso a outros schemas (veja o
+    # README). No pooler do Supabase o formato e  <usuario>.<ref_do_projeto>
+    username: smartkey_app.SEU_PROJECT_REF
+
+    # A senha definida no CREATE USER smartkey_app.
+    password: SUA_SENHA_DO_BANCO
+
+smartkey:
+  # Invente uma senha qualquer. E ela que voce vai digitar no botao
+  # "Authorize" do Swagger e no cabecalho x-admin-key.
+  admin-api-key: minha-chave-de-teste-123
+
+  # Em desenvolvimento, deixe true: permite simular acessos em qualquer
+  # data/hora para testar "antes do check-in" e "depois do checkout".
+  # Em producao isto DEVE ficar false.
+  allow-time-travel: true
+
+  # Cria automaticamente o cenario de exemplo (Joao, apto 804, os 4 leitores)
+  # na primeira vez que a aplicacao subir com o banco vazio.
+  seed-demo: true
+
+logging:
+  level:
+    com.smartkey: DEBUG

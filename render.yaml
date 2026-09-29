@@ -1,0 +1,52 @@
+# ===========================================================================
+# Configuracao de deploy no Render (usada apenas na FASE 8).
+#
+# Com este arquivo no repositorio, o Render monta o servico sozinho: voce
+# conecta o GitHub, ele le este arquivo e nao precisa preencher formulario.
+#
+# As variaveis marcadas com "sync: false" NAO ficam no arquivo: o Render
+# pergunta o valor no painel, e ele fica guardado la, fora do repositorio.
+# ===========================================================================
+
+services:
+  - type: web
+    name: smartkey-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+
+      # ---- Banco de dados (Supabase) --------------------------------------
+      # Use a string do "Session Pooler", no formato JDBC.
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+
+      # ---- Seguranca -------------------------------------------------------
+      # O Render gera sozinho uma chave forte e aleatoria.
+      - key: ADMIN_API_KEY
+        generateValue: true
+
+      # Simulacao de data/hora: DESLIGADA em producao, sempre.
+      - key: ALLOW_TIME_TRAVEL
+        value: "false"
+
+      - key: SEED_DEMO
+        value: "false"
+
+      # O plano gratuito do Supabase aceita poucas conexoes simultaneas.
+      - key: DB_POOL_SIZE
+        value: "3"
+
+      # Um proxy confiavel: o do proprio Render. Se colocar o Cloudflare na
+      # frente, mude para 2.
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"

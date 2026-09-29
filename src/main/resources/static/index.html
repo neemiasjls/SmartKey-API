@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#1f6feb">
+    <title>SmartKey — Painel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ===================== TELA DE ENTRADA ===================== -->
+<div id="login">
+    <div class="card">
+        <div class="logo">🔑</div>
+        <h2>SmartKey</h2>
+        <p class="hint">Painel de chaves digitais</p>
+
+        <label for="key">Chave administrativa</label>
+        <input type="password" id="key" placeholder="cole a chave aqui"
+               autocomplete="current-password">
+
+        <button class="btn" id="enter">Entrar</button>
+        <p class="hint" id="demo-hint" hidden style="margin-top:14px;font-size:12px">
+            Modo demonstração: a chave é <strong>demo123</strong>
+        </p>
+    </div>
+</div>
+
+<!-- ===================== APLICAÇÃO ===================== -->
+<div id="app" hidden>
+
+    <header>
+        <div class="logo">🔑</div>
+        <h1>SmartKey</h1>
+        <button class="btn ghost small" id="logout">Sair</button>
+    </header>
+
+    <nav role="tablist">
+        <button role="tab" data-tab="keys"      aria-selected="true">Chaves</button>
+        <button role="tab" data-tab="new"       aria-selected="false">Nova reserva</button>
+        <button role="tab" data-tab="phone"     aria-selected="false">Celular 🔐</button>
+        <button role="tab" data-tab="simulator" aria-selected="false">Testar porta</button>
+        <button role="tab" data-tab="readers"   aria-selected="false">Leitores</button>
+        <button role="tab" data-tab="history"   aria-selected="false">Histórico</button>
+    </nav>
+
+    <main>
+
+        <!-- ---------- CHAVES ---------- -->
+        <section id="tab-keys">
+            <h2>Chaves emitidas</h2>
+            <p class="hint">Cada chave vale para uma reserva, num aparelho.</p>
+            <div id="keys-list"><div class="empty">Carregando…</div></div>
+        </section>
+
+        <!-- ---------- NOVA RESERVA ---------- -->
+        <section id="tab-new" hidden>
+            <h2>Nova reserva</h2>
+            <p class="hint">
+                Cria o hóspede, a reserva, o aparelho e emite a chave — tudo de uma vez.
+            </p>
+
+            <div class="card">
+                <label for="n-name">Nome do hóspede</label>
+                <input id="n-name" placeholder="João da Silva">
+
+                <label for="n-unit">Apartamento</label>
+                <input id="n-unit" placeholder="804">
+
+                <div class="row">
+                    <div>
+                        <label for="n-in">Check-in</label>
+                        <input type="datetime-local" id="n-in">
+                    </div>
+                    <div>
+                        <label for="n-out">Checkout</label>
+                        <input type="datetime-local" id="n-out">
+                    </div>
+                </div>
+
+                <label>Portas liberadas</label>
+                <p class="hint" style="margin:0 0 8px">
+                    O apartamento é incluído automaticamente.
+                </p>
+                <div id="n-points" class="grants"></div>
+
+                <button class="btn" id="n-create">Criar reserva e emitir chave</button>
+            </div>
+        </section>
+
+        <!-- ---------- CELULAR DO HÓSPEDE (criptografia) ---------- -->
+        <section id="tab-phone" hidden>
+            <h2>Este navegador como a chave</h2>
+            <p class="hint">
+                Faz exatamente o que o aplicativo Android fará: gera um par de
+                chaves, guarda a privada aqui dentro e assina os desafios.
+            </p>
+
+            <div class="warning-banner">
+                <strong>A chave privada não sai daqui.</strong>
+                Ela é criada sem permissão de exportação e fica guardada no
+                navegador. Nem este painel, nem o servidor, nem você conseguem
+                lê-la — só usá-la para assinar.
+            </div>
+
+            <div class="card">
+                <div class="card-title">1. Par de chaves</div>
+                <div id="p-keystatus" class="card-sub" style="margin-top:6px">
+                    Verificando…
+                </div>
+                <div class="row">
+                    <button class="btn ghost small" id="p-generate">Gerar par</button>
+                    <button class="btn ghost small danger" id="p-forget">Apagar</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">2. Vincular a uma chave de hóspede</div>
+                <label for="p-cred">Credencial</label>
+                <select id="p-cred"></select>
+                <button class="btn" id="p-register">
+                    Enviar chave pública ao servidor
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">3. Abrir a porta</div>
+                <label for="p-reader">Leitor</label>
+                <select id="p-reader"></select>
+
+                <label for="p-when">Momento da tentativa</label>
+                <input type="datetime-local" id="p-when">
+
+                <button class="btn" id="p-open">🔓 Abrir (fluxo assinado)</button>
+
+                <div class="row" style="margin-top:8px">
+                    <button class="btn ghost small" id="p-replay">
+                        Repetir o último desafio
+                    </button>
+                    <button class="btn ghost small" id="p-tamper">
+                        Alterar a assinatura
+                    </button>
+                </div>
+
+                <div id="p-result"></div>
+                <div id="p-steps" class="mono" style="margin-top:12px"></div>
+            </div>
+        </section>
+
+        <!-- ---------- SIMULADOR ---------- -->
+        <section id="tab-simulator" hidden>
+            <h2>Testar uma porta</h2>
+            <p class="hint">
+                Simula o que aconteceria se a chave fosse apresentada ao leitor.
+            </p>
+
+            <div class="card">
+                <label for="s-cred">Chave</label>
+                <select id="s-cred"></select>
+
+                <label for="s-reader">Leitor (porta)</label>
+                <select id="s-reader"></select>
+
+                <label for="s-when">Momento da tentativa</label>
+                <input type="datetime-local" id="s-when">
+                <p class="hint" style="margin:6px 0 0;font-size:12px">
+                    Mude a data para testar antes do check-in ou depois do checkout.
+                </p>
+
+                <button class="btn" id="s-run">Tentar abrir</button>
+                <div id="s-result"></div>
+            </div>
+        </section>
+
+        <!-- ---------- LEITORES ---------- -->
+        <section id="tab-readers" hidden>
+            <h2>Leitores</h2>
+            <p class="hint">
+                O <strong>código</strong> identifica o aparelho; a <strong>porta</strong>
+                diz o que ele abre.
+            </p>
+            <div id="readers-list"></div>
+
+            <div class="card">
+                <div class="card-title">Cadastrar leitor</div>
+                <label for="r-code">Código do aparelho</label>
+                <input id="r-code" placeholder="reader_apto_901">
+
+                <label for="r-name">Nome</label>
+                <input id="r-name" placeholder="Porta do apartamento 901">
+
+                <label for="r-point">Porta que ele controla</label>
+                <input id="r-point" placeholder="apartamento_901">
+
+                <button class="btn" id="r-create">Cadastrar</button>
+            </div>
+        </section>
+
+        <!-- ---------- HISTÓRICO ---------- -->
+        <section id="tab-history" hidden>
+            <h2>Histórico de acessos</h2>
+            <p class="hint">Toda tentativa fica registrada, liberada ou negada.</p>
+            <div class="card" id="history-list"></div>
+        </section>
+
+    </main>
+</div>
+
+<script src="app.js"></script>
+<script src="phone.js"></script>
+</body>
+</html>

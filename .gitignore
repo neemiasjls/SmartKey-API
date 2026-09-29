@@ -1,0 +1,26 @@
+# Build
+target/
+*.jar
+*.war
+
+# Configuracao local com senhas - NUNCA enviar para o GitHub
+src/main/resources/application-local.yml
+.env
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+nbproject/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,0 +1,84 @@
+# ===========================================================================
+# PERFIL "DEMO" - para ver o sistema funcionando AGORA, sem banco externo.
+#
+# Como rodar:
+#     mvn spring-boot:run -Dspring-boot.run.profiles=demo
+#
+# O banco roda dentro da propria aplicacao, na memoria do computador.
+# Nao precisa de Supabase, nem de internet, nem de senha.
+#
+# ATENCAO: os dados somem quando voce fecha a aplicacao. Isto serve para
+# demonstracao e testes rapidos - o banco de verdade e o Supabase.
+# ===========================================================================
+
+spring:
+  datasource:
+    # "mem:smartkey"  = banco na memoria
+    # "MODE=PostgreSQL" = o H2 finge ser um PostgreSQL, para o comportamento
+    #                     ficar o mais parecido possivel com o banco real
+    url: jdbc:h2:mem:smartkey;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 5
+      # Anula o schema definido no application.yml: no banco em memoria
+      # usamos o schema padrao, que ja existe desde que o banco nasce.
+      schema: PUBLIC
+
+  jpa:
+    hibernate:
+      # Aqui o proprio Hibernate cria as tabelas a partir das classes Java.
+      # No banco de verdade quem faz isso e o Flyway - por isso o perfil
+      # demo nao valida nada do arquivo V1__initial_schema.sql.
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        # SEM schema separado aqui, de proposito.
+        #
+        # O schema "smartkey" existe para isolar nossas tabelas do banco do
+        # Supabase, que e compartilhado com outro sistema. No banco em memoria
+        # nao ha nada para isolar: ele nasce e morre com o teste.
+        #
+        # Deixar em branco tambem evita um problema de ordem: o H2 tentaria
+        # usar o schema antes de ele ter sido criado.
+        default_schema: ''
+
+  flyway:
+    # Desligado no modo demo: o Hibernate ja criou as tabelas.
+    enabled: false
+
+  # Console visual do banco: DESLIGADO.
+  #
+  # Ele da acesso total ao banco, com usuario "sa" e senha em branco - e o H2
+  # permite executar codigo Java a partir dele. Se este modo for exposto na
+  # internet (por ngrok, por exemplo), qualquer pessoa assumiria o servidor.
+  # Para usar so na sua maquina: mude para true e NAO exponha o servidor.
+  h2:
+    console:
+      enabled: false
+
+smartkey:
+  # Chave do painel. "demo123" e conveniente na sua maquina, mas e PUBLICA:
+  # esta escrita neste arquivo e no README. Ao expor o modo demo na internet
+  # (ngrok), defina outra:  ADMIN_API_KEY=uma-chave-longa
+  admin-api-key: ${ADMIN_API_KEY:demo123}
+
+  demo-mode: true
+
+  allow-time-travel: true
+  seed-demo: true
+
+  # No modo demonstracao mantemos o endpoint sem assinatura ligado, para
+  # dar para testar as regras de horario e porta sem precisar de chaves.
+  allow-insecure-check: true
+
+  challenge-ttl-seconds: 120
+
+  # Folgado no modo demo: os testes automatizados ativam dezenas de chaves
+  # seguidas, todas do mesmo computador. O limite real e testado a parte.
+  enroll-attempts-per-minute: 1000
+
+logging:
+  level:
+    com.smartkey: INFO

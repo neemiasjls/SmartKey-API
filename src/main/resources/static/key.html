@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Minha Chave</title>
+
+    <link rel="manifest" href="/key-manifest.json">
+    <meta name="theme-color" content="#1f6feb">
+
+    <!-- O iPhone ignora o manifest; ele usa estas marcações próprias. -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Minha Chave">
+    <link rel="apple-touch-icon" href="/icons/key-180.png">
+
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body { padding: 0; }
+
+        .wrap {
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0 18px;
+        }
+        .brand h1 { font-size: 17px; margin: 0; font-weight: 650; }
+
+        .qr-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 14px;
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+            margin: 4px 0 12px;
+        }
+        .qr-box svg { width: 100%; height: 100%; display: block; }
+
+        .countdown {
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .countdown span {
+            display: block;
+            height: 100%;
+            background: var(--primary);
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .stay {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            padding: 12px 0;
+            border-top: 1px solid var(--border);
+        }
+        .stay div { min-width: 0; }
+        .stay .label { color: var(--text-dim); font-size: 11px; }
+        .stay .value { font-weight: 600; margin-top: 2px; }
+
+        .doors { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+        #install {
+            position: fixed;
+            left: 16px; right: 16px;
+            bottom: calc(16px + env(safe-area-inset-bottom));
+            max-width: 430px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrap">
+
+    <div class="brand">
+        <div class="logo">🔑</div>
+        <h1>Minha Chave</h1>
+    </div>
+
+    <!-- ---------- ATIVAÇÃO ---------- -->
+    <section id="setup" hidden>
+        <div class="card">
+            <h2>Ativar sua chave</h2>
+            <p class="hint" id="setup-msg">
+                Este aparelho vai criar uma chave exclusiva para a sua estadia.
+            </p>
+
+            <div class="warning-banner">
+                <strong>A chave fica só neste aparelho.</strong>
+                Ela é criada aqui e não pode ser copiada, nem por nós. Se você
+                trocar de celular, será preciso um novo link.
+            </div>
+
+            <label for="devname">Nome deste aparelho</label>
+            <input id="devname" placeholder="Meu celular">
+
+            <button class="btn" id="activate">Ativar chave</button>
+        </div>
+    </section>
+
+    <!-- ---------- A CHAVE ---------- -->
+    <section id="key" hidden>
+        <div class="card" style="padding:14px">
+            <div class="qr-box" id="qr-box"></div>
+            <div class="countdown"><span id="bar"></span></div>
+
+            <p class="hint" style="text-align:center;margin:0">
+                Apresente este código ao leitor da porta
+            </p>
+
+            <div class="stay">
+                <div>
+                    <div class="label">HÓSPEDE</div>
+                    <div class="value" id="k-guest">—</div>
+                </div>
+                <div style="text-align:right">
+                    <div class="label">UNIDADE</div>
+                    <div class="value" id="k-unit">—</div>
+                </div>
+            </div>
+
+            <div class="stay">
+                <div>
+                    <div class="label">ENTRADA</div>
+                    <div class="value" id="k-from">—</div>
+                </div>
+                <div style="text-align:right">
+                    <div class="label">SAÍDA</div>
+                    <div class="value" id="k-until">—</div>
+                </div>
+            </div>
+
+            <div style="padding-top:12px;border-top:1px solid var(--border)">
+                <div class="label" style="color:var(--text-dim);font-size:11px">
+                    PORTAS LIBERADAS
+                </div>
+                <div class="doors" id="k-doors"></div>
+            </div>
+        </div>
+
+        <p class="hint" style="text-align:center;font-size:12px">
+            <span id="k-status">—</span>
+        </p>
+    </section>
+
+    <!-- ---------- ERRO ---------- -->
+    <section id="error" hidden>
+        <div class="card">
+            <h2>Não foi possível abrir sua chave</h2>
+            <p class="hint" id="error-msg"></p>
+        </div>
+    </section>
+
+</div>
+
+<button class="btn" id="install" hidden>📲 Instalar na tela inicial</button>
+
+<script src="/key.js"></script>
+</body>
+</html>

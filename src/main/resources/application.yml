@@ -1,0 +1,108 @@
+# ===========================================================================
+# Configuracao PADRAO da aplicacao.
+#
+# Este arquivo VAI para o repositorio, entao NAO coloque senhas aqui.
+# Os valores sensiveis vem de:
+#   - application-local.yml  (na sua maquina; ignorado pelo git)
+#   - variaveis de ambiente  (na nuvem: Render, Supabase)
+#
+# A sintaxe ${NOME:padrao} significa:
+#   "use a variavel de ambiente NOME; se ela nao existir, use 'padrao'".
+# ===========================================================================
+
+spring:
+  application:
+    name: smartkey-api
+
+  # Se nenhum perfil for informado, assumimos "local".
+  # Na nuvem, definimos SPRING_PROFILES_ACTIVE=prod.
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+  datasource:
+    url: ${DATABASE_URL:}
+    username: ${DATABASE_USERNAME:}
+    password: ${DATABASE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # Define o schema na PROPRIA CONEXAO, e nao apenas no Hibernate.
+      #
+      # Por que isso e necessario: o "default_schema" do Hibernate so vale
+      # para as consultas que ele mesmo monta. Uma consulta SQL escrita a mao
+      # (como o INSERT ... ON CONFLICT dos codigos QR) nao passa por essa
+      # traducao e acabaria procurando a tabela no schema errado.
+      schema: ${DB_SCHEMA:smartkey}
+
+      # O plano gratuito do Supabase permite poucas conexoes simultaneas.
+      # Como este banco e COMPARTILHADO com outro sistema seu, mantemos o
+      # numero baixo de proposito, para nao competir por conexoes com ele.
+      maximum-pool-size: ${DB_POOL_SIZE:3}
+      minimum-idle: 1
+      connection-timeout: 20000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # "validate" = o Hibernate CONFERE se o banco bate com as entidades Java,
+      # mas nunca altera nada sozinho. Quem cria e altera tabelas e o Flyway.
+      # Isto evita que uma mudanca acidental no codigo destrua o banco.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        # ISOLAMENTO: todas as nossas tabelas moram no schema "smartkey".
+        # O schema "public", onde ficam as tabelas dos seus outros sistemas,
+        # nao e tocado por esta aplicacao em nenhuma hipotese.
+        default_schema: ${DB_SCHEMA:smartkey}
+        jdbc:
+          time_zone: UTC
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+    # O Flyway trabalha exclusivamente dentro deste schema, e o cria sozinho
+    # na primeira execucao se ele ainda nao existir.
+    schemas: ${DB_SCHEMA:smartkey}
+    default-schema: ${DB_SCHEMA:smartkey}
+    create-schemas: true
+
+server:
+  # O Render informa a porta pela variavel PORT. Local, usamos 8080.
+  port: ${PORT:8080}
+  error:
+    include-message: always
+
+# ---------------------------------------------------------------------------
+# Configuracoes proprias do SmartKey
+# ---------------------------------------------------------------------------
+smartkey:
+  admin-api-key: ${ADMIN_API_KEY:}
+  allow-time-travel: ${ALLOW_TIME_TRAVEL:false}
+  seed-demo: ${SEED_DEMO:false}
+
+  # Validade de cada desafio criptografico, em segundos.
+  challenge-ttl-seconds: ${CHALLENGE_TTL_SECONDS:60}
+
+  # Endpoint antigo /api/access/check, que abre a porta SEM assinatura.
+  # DESLIGADO por padrao: em producao ele seria uma porta escancarada.
+  allow-insecure-check: ${ALLOW_INSECURE_CHECK:false}
+
+  # Proxies confiaveis entre a internet e a aplicacao (ver ClientOrigin).
+  # 0 = local, 1 = Render, 2 = Cloudflare + Render.
+  trusted-proxy-hops: ${TRUSTED_PROXY_HOPS:0}
+
+  enroll-attempts-per-minute: ${ENROLL_ATTEMPTS_PER_MINUTE:10}
+
+# ---------------------------------------------------------------------------
+# Documentacao interativa: http://localhost:8080/swagger-ui.html
+# ---------------------------------------------------------------------------
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+
+logging:
+  level:
+    com.smartkey: INFO

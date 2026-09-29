@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Leitor SmartKey</title>
+
+    <link rel="manifest" href="/reader-manifest.json">
+    <meta name="theme-color" content="#1a7f37">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Leitor">
+    <link rel="apple-touch-icon" href="/icons/reader-180.png">
+
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body { padding: 0; }
+
+        .wrap {
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0 14px;
+        }
+        .brand h1 { font-size: 16px; margin: 0; flex: 1; font-weight: 650; }
+        .brand .logo { background: var(--green); }
+
+        .camera {
+            position: relative;
+            background: #000;
+            border-radius: 14px;
+            overflow: hidden;
+            aspect-ratio: 3 / 4;
+        }
+        .camera video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* Moldura de mira, para a pessoa saber onde encostar o celular */
+        .aim {
+            position: absolute;
+            inset: 18%;
+            border: 3px solid rgba(255, 255, 255, 0.85);
+            border-radius: 14px;
+            pointer-events: none;
+        }
+
+        /* O resultado cobre a câmera inteira: precisa ser visível de longe,
+           por alguém que está de pé na frente da porta. */
+        .verdict-overlay {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-content: center;
+            text-align: center;
+            padding: 20px;
+            color: #fff;
+        }
+        .verdict-overlay.granted { background: rgba(26, 127, 55, 0.96); }
+        .verdict-overlay.denied  { background: rgba(207, 34, 46, 0.96); }
+        .verdict-overlay .big { font-size: 60px; line-height: 1; }
+        .verdict-overlay .title {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 12px 0 8px;
+            letter-spacing: -0.02em;
+        }
+        .verdict-overlay .why { font-size: 15px; opacity: 0.95; }
+        .verdict-overlay .code {
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrap">
+
+    <div class="brand">
+        <div class="logo">📷</div>
+        <h1>Leitor</h1>
+        <span class="tag mute" id="reader-tag">—</span>
+    </div>
+
+    <!-- ---------- CONFIGURAÇÃO ---------- -->
+    <section id="config">
+        <div class="card">
+            <h2>Configurar este leitor</h2>
+            <p class="hint">
+                Diga qual porta este aparelho controla. Fica guardado aqui.
+            </p>
+
+            <label for="reader-code">Código deste leitor</label>
+            <input id="reader-code" placeholder="reader_apto_804">
+
+            <label for="reader-key">Chave deste leitor</label>
+            <input type="password" id="reader-key" placeholder="rdr_…">
+
+            <p class="hint" style="margin-top:10px;font-size:12px">
+                A chave aparece uma única vez, quando o leitor é cadastrado no
+                painel. Se perdeu, gere outra lá.
+            </p>
+
+            <div class="warning-banner" style="margin-top:6px">
+                <strong>Esta chave só serve para esta porta.</strong>
+                Ela não cria reservas, não abre outros apartamentos e não lê o
+                histórico. Se este aparelho for roubado, basta gerar outra
+                chave no painel — nenhum outro leitor é afetado.
+            </div>
+
+            <button class="btn" id="save-config">Salvar e abrir a câmera</button>
+        </div>
+    </section>
+
+    <!-- ---------- LEITURA ---------- -->
+    <section id="scanner" hidden>
+        <div class="camera">
+            <video id="video" playsinline muted></video>
+            <div class="aim"></div>
+            <div class="verdict-overlay" id="verdict" hidden></div>
+        </div>
+
+        <p class="hint" style="text-align:center;margin:12px 0">
+            <span id="scan-status">Aponte para o código do hóspede</span>
+        </p>
+
+        <details class="card">
+            <summary style="cursor:pointer;font-size:14px">
+                A câmera não funciona neste aparelho?
+            </summary>
+            <p class="hint" style="margin-top:10px">
+                Cole aqui o conteúdo do código para testar mesmo assim.
+            </p>
+            <input id="manual" placeholder="SK1.…">
+            <button class="btn ghost" id="manual-go">Verificar</button>
+        </details>
+
+        <button class="btn ghost small" id="reconfigure"
+                style="width:100%;margin-top:12px">
+            Trocar de porta
+        </button>
+    </section>
+
+</div>
+
+<script src="/reader.js"></script>
+</body>
+</html>
