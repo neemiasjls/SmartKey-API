@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Contexto foi compactado. Se o resumo tiver a secao Conhecimento duradouro ainda nao gravado, grave agora em docs/memoria seguindo o protocolo do CLAUDE.md.'"
+          }
+        ]
+      }
+    ]
+  }
+}
